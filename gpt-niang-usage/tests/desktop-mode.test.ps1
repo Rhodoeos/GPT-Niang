@@ -22,7 +22,7 @@ try{
   foreach($key in $preferences.Keys){if($saved.$key-ne $preferences[$key]){throw "Preference lost during desktop save: $key"}}
   Write-Output 'PASS: desktop positions and original scale, sound, menu and color preferences persist'
 }finally{if(Test-Path -LiteralPath $settingsFile){Remove-Item -LiteralPath $settingsFile}}
-# Exercise ownership with real isolated windows; never move or minimize the user's chat.
+# Exercise independent layering with real isolated windows; never move or minimize the user's chat.
 $owner=New-Object Windows.Window;$owner.Title='Desktop mode test host';$owner.Width=200;$owner.Height=200
 $pet=New-Object Windows.Window;$pet.Title='Desktop mode test pet';$pet.Width=100;$pet.Height=100
 $follower=$null
@@ -37,7 +37,7 @@ try{
   $follower.Detach()
   if($follower.Ready -or $follower.Synchronize()){throw 'Detached follower still controls desktop placement'}
   $null=Set-WidgetAboveHost $petHandle $ownerHandle
-  if([GptWidgetZOrderNative]::GetWindowLongPtr($petHandle,-8)-ne $ownerHandle){throw 'Follow mode ownership failed'}
+  if([GptWidgetZOrderNative]::GetWindowLongPtr($petHandle,-8)-ne [IntPtr]::Zero){throw 'Follow mode attached the host input queue'}
   Set-WidgetDesktopLayer $petHandle $true
   if([GptWidgetZOrderNative]::GetWindowLongPtr($petHandle,-8)-ne [IntPtr]::Zero){throw 'Desktop pet still owned by chat'}
   if(![GptWidgetZOrderNative]::Topmost($petHandle)){throw 'Desktop topmost failed'}
