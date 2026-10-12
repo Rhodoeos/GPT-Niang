@@ -51,6 +51,7 @@ function Assert-SizeAfterNativeMove([string]$Context){
   if($script:scale-ne 1){throw 'Placement changed the user scale.'}
 }
 $script:hostHandle=[IntPtr](1);$script:widgetHandle=[IntPtr](2)
+$interop=[pscustomobject]@{Owner=$script:hostHandle}
 $script:hostReadiness=[pscustomobject]@{desktopStarted=$true}
 $script:context=[pscustomobject]@{IsOpen=$false}
 $script:hostFollower=New-Object PSObject

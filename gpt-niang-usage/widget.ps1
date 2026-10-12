@@ -720,6 +720,8 @@ function Tick-Widget {
     if($script:attachedHost-ne $script:hostHandle){
       $script:attachedHost=$script:hostHandle;$script:lastPosition=$null
     }
+    # Keep WPF's owner state aligned with the native attachment before showing.
+    if($script:followHost -and $interop.Owner-ne $script:hostHandle){$interop.Owner=$script:hostHandle}
     $showWidget=!$script:window.IsVisible
     if(!$script:drag){
       $frame=$placementFrame;$dpi=$placementDpi
