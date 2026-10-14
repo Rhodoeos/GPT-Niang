@@ -4,6 +4,7 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 $appDir=Split-Path $TestRoot -Parent
 if(!$WidgetSource){$WidgetSource=Join-Path $appDir 'widget.ps1'}
 . (Join-Path $appDir 'runtime\host-layer.ps1')
+. (Join-Path $appDir 'runtime\host-occlusion.ps1')
 $source=[IO.File]::ReadAllText($WidgetSource,[Text.Encoding]::UTF8)
 $tokens=$null;$errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseInput($source,[ref]$tokens,[ref]$errors)
@@ -36,6 +37,7 @@ try{
  $secondHandle=([Windows.Interop.WindowInteropHelper]::new($second)).Handle
  $interop=[Windows.Interop.WindowInteropHelper]::new($pet)
  $script:widgetHandle=$interop.EnsureHandle();$script:window=$pet
+ $script:occlusionRecovery=[GptWidgetOcclusionRecovery]::new($script:widgetHandle)
  $script:hostHandle=$firstHandle;$script:attachedHost=[IntPtr]::Zero
  $script:lastForeground=[GptWidgetNative]::GetAncestor([GptWidgetNative]::GetForegroundWindow(),2)
  $script:lastPresence=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()+3600000
@@ -73,4 +75,4 @@ try{
  $second.Close()
  if([GptWidgetZOrderNative]::GetWindowLongPtr($script:widgetHandle,-8)-ne [IntPtr]::Zero -or ![GptWidgetZOrderNative]::IsWindow($script:widgetHandle)){throw 'Desktop detachment did not survive closure of the former host.'}
  Write-Output 'PASS: desktop detachment survives closure of a framework-managed former host'
-}finally{$pet.Close();$first.Close();$second.Close()}
+}finally{if($script:occlusionRecovery){$script:occlusionRecovery.Dispose()};$pet.Close();$first.Close();$second.Close()}
